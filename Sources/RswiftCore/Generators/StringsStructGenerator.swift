@@ -19,17 +19,18 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
   func generatedStruct(at externalAccessLevel: AccessLevel, prefix: SwiftIdentifier) -> Struct {
     let structName: SwiftIdentifier = "string"
     let qualifiedName = prefix + structName
-    let localized = localizableStrings.grouped { $0.filename }
-    let groupedLocalized = localized.groupedBySwiftIdentifier { $0.0 }
+    let localized = localizableStrings.grouped(by: { $0.filename })
+    let groupedLocalized = localized.grouped(bySwiftIdentifier: { $0.0 })
 
     groupedLocalized.printWarningsForDuplicatesAndEmpties(source: "strings file", result: "file")
 
-    let structs = groupedLocalized.uniques.flatMap { arg -> Struct? in
+    let structs = groupedLocalized.uniques.compactMap { arg -> Struct? in
       let (key, value) = arg
       return stringStructFromLocalizableStrings(filename: key, strings: value, at: externalAccessLevel, prefix: qualifiedName)
     }
 
     return Struct(
+      availables: [],
       comments: ["This `\(qualifiedName)` struct is generated, and contains static references to \(groupedLocalized.uniques.count) localization tables."],
       accessModifier: externalAccessLevel,
       type: Type(module: .host, name: structName),
@@ -50,6 +51,7 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
     let params = computeParams(filename: filename, strings: strings)
 
     return Struct(
+      availables: [],
       comments: ["This `\(qualifiedName)` struct is generated, and contains static references to \(params.count) localization keys."],
       accessModifier: externalAccessLevel,
       type: Type(module: .host, name: structName),
@@ -79,7 +81,7 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
     // Warnings about duplicates and empties
     for ls in strings {
       let filenameLocale = ls.locale.withFilename(filename)
-      let groupedKeys = ls.dictionary.keys.groupedBySwiftIdentifier { $0 }
+      let groupedKeys = ls.dictionary.keys.grouped(bySwiftIdentifier: { $0 })
 
       groupedKeys.printWarningsForDuplicatesAndEmpties(source: "string", container: "in \(filenameLocale)", result: "key")
 
@@ -168,7 +170,7 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
       let fewParams = allParams.filter { $0.0 == badKey }.map { $0.1 }
 
       if let params = fewParams.first {
-        let locales = params.flatMap { $0.0.localeDescription }.joined(separator: ", ")
+        let locales = params.compactMap { $0.0.localeDescription }.joined(separator: ", ")
         warn("Skipping string for key \(badKey) (\(filename)), format specifiers don't match for all locales: \(locales)")
       }
     }
@@ -180,7 +182,7 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
     let escapedKey = values.key.escapedStringLiteral
     let locales = values.values
       .map { $0.0 }
-      .flatMap { $0.localeDescription }
+      .compactMap { $0.localeDescription }
       .map { "\"\($0)\"" }
       .joined(separator: ", ")
 
@@ -206,6 +208,7 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
   private func stringFunctionNoParams(for values: StringValues, at externalAccessLevel: AccessLevel) -> Function {
 
     return Function(
+      availables: [],
       comments: values.comments,
       accessModifier: externalAccessLevel,
       isStatic: true,
@@ -233,6 +236,7 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
     let args = params.map { $0.localName ?? $0.name }.joined(separator: ", ")
 
     return Function(
+      availables: [],
       comments: values.comments,
       accessModifier: externalAccessLevel,
       isStatic: true,
@@ -314,7 +318,7 @@ private struct StringValues {
         results.append("")
       }
 
-      let locales = values.flatMap { $0.0.localeDescription }
+      let locales = values.compactMap { $0.0.localeDescription }
       results.append("Locales: \(locales.joined(separator: ", "))")
     }
 

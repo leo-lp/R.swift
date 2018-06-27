@@ -1,4 +1,4 @@
-# R.swift [![Version](https://img.shields.io/cocoapods/v/R.swift.svg?style=flat)](http://cocoapods.org/?q=R.swift) [![License](https://img.shields.io/cocoapods/l/R.swift.svg?style=flat)](blob/master/License) ![Platform](https://img.shields.io/cocoapods/p/R.swift.svg?style=flat) ![Build status](https://www.bitrise.io/app/cef05ad300903a89.svg?token=aPVYvCoJVcdVM-Z6KekYPQ&branch=master)
+# R.swift [![Version](https://img.shields.io/cocoapods/v/R.swift.svg?style=flat)](https://cocoapods.org/pods/R.swift) [![License](https://img.shields.io/cocoapods/l/R.swift.svg?style=flat)](blob/master/License) ![Platform](https://img.shields.io/cocoapods/p/R.swift.svg?style=flat)
 
 _Get strong typed, autocompleted resources like images, fonts and segues in Swift projects_
 
@@ -13,6 +13,7 @@ Currently you type:
 ```swift
 let icon = UIImage(named: "settings-icon")
 let font = UIFont(name: "San Francisco", size: 42)
+let color = UIColor(named: "indictator highlight")
 let viewController = CustomViewController(nibName: "CustomView", bundle: nil)
 let string = String(format: NSLocalizedString("welcome.withName", comment: ""), locale: NSLocale.current, "Arthur Dent")
 ```
@@ -21,6 +22,7 @@ With R.swift it becomes:
 ```swift
 let icon = R.image.settingsIcon()
 let font = R.font.sanFrancisco(size: 42)
+let color = R.color.indicatorHighlight()
 let viewController = CustomViewController(nib: R.nib.customView)
 let string = R.string.localizable.welcomeWithName("Arthur Dent")
 ```
@@ -39,6 +41,13 @@ Check out [more examples](Documentation/Examples.md) or hear about [how Fabric.a
 
 This is only the beginning, check out [more examples](Documentation/Examples.md)!
 
+## CocoaHeadsNL presentation
+
+Mathijs Kadijk presented R.swift at the September 2016 CocoaHeadsNL meetup.
+Talking about the ideas behind R.swift and demonstrating how to move from plain stringly-typed iOS code to statically typed code.
+
+<a href="https://vimeo.com/185173151"><img src="https://i.vimeocdn.com/video/594835658.jpg?mw=1920&mh=1080&q=70" width="560" alt="R.swift presentation at CocoaHeadsNL"></a>
+
 ## Features
 
 After installing R.swift into your project you can use the `R`-struct to access resources. If the struct is outdated just build and R.swift will correct any missing/changed/added resources.
@@ -56,6 +65,7 @@ R.swift currently supports these types of resources:
 
 Runtime validation with [`R.validate()`](Documentation/Examples.md#runtime-validation):
 - If all images used in storyboards and nibs are available
+- If all named colors used in storyboards and nibs are available
 - If all view controllers with storyboard identifiers can be loaded
 - If all custom fonts can be loaded
 
@@ -76,7 +86,12 @@ Runtime validation with [`R.validate()`](Documentation/Examples.md#runtime-valid
 
 [CocoaPods](http://cocoapods.org) is the recommended way of installation, as this avoids including any binary files into your project.
 
-_Note on Carthage: R.swift is a tool that used in a build step, it is not a dynamic library. Therefore [it is not possible](https://github.com/mac-cain13/R.swift/issues/42) to install it with Carthage._
+_Note on Carthage: R.swift is a tool used in a build step, it is not a dynamic library. Therefore [it is not possible](https://github.com/mac-cain13/R.swift/issues/42) to install it with Carthage._
+
+> ### ⚠️ Change between R.swift 3 and R.swift 4
+> Be aware:  
+> For R.swift 3.x and below, the `rswift` executable should be called with only one argument: `rswift $SRCROOT`  
+> For R.swift 4, the `rswift` executable should be called with two arguments: `rswift generate $SRCROOT`
 
 ### CocoaPods (recommended)
 
@@ -84,7 +99,10 @@ _There is also a [short video](https://vimeo.com/122888912) of this instruction.
 
 1. Add `pod 'R.swift'` to your [Podfile](http://cocoapods.org/#get_started) and run `pod install`
 2. In Xcode: Click on your project in the file list, choose your target under `TARGETS`, click the `Build Phases` tab and add a `New Run Script Phase` by clicking the little plus icon in the top left
-3. Drag the new `Run Script` phase **above** the `Compile Sources` phase and **below** `Check Pods Manifest.lock`, expand it and paste the following script: `"$PODS_ROOT/R.swift/rswift" "$SRCROOT"`
+3. Drag the new `Run Script` phase **above** the `Compile Sources` phase and **below** `Check Pods Manifest.lock`, expand it and paste the following script:  
+   ```
+   "$PODS_ROOT/R.swift/rswift" generate "$SRCROOT"
+   ```
 4. Build your project, in Finder you will now see a `R.generated.swift` in the `$SRCROOT`-folder, drag the `R.generated.swift` files into your project and **uncheck** `Copy items if needed`
 
 _Tip:_ Add the `*.generated.swift` pattern to your `.gitignore` file to prevent unnecessary conflicts.
@@ -94,7 +112,10 @@ _Tip:_ Add the `*.generated.swift` pattern to your `.gitignore` file to prevent 
 0. Add the [R.swift.Library](https://github.com/mac-cain13/R.swift.Library#Installation) to your project
 1. [Download](https://github.com/mac-cain13/R.swift/releases) a R.swift release, unzip it and put it into your source root directory
 2. In Xcode: Click on your project in the file list, choose your target under `TARGETS`, click the `Build Phases` tab and add a `New Run Script Phase` by clicking the little plus icon in the top left
-3. Drag the new `Run Script` phase **above** the `Compile Sources` phase, expand it and paste the following script: `"$SRCROOT/rswift" "$SRCROOT"`
+3. Drag the new `Run Script` phase **above** the `Compile Sources` phase, expand it and paste the following script:  
+   ```
+   "$SRCROOT/rswift" generate "$SRCROOT"
+   ```
 4. Build your project, in Finder you will now see a `R.generated.swift` in the `$SRCROOT`-folder, drag the `R.generated.swift` files into your project and **uncheck** `Copy items if needed`
 
 _Tip:_ Add the `*.generated.swift` pattern to your `.gitignore` file to prevent unnecessary conflicts.

@@ -22,10 +22,17 @@ class AggregatedStructGenerator: StructGenerator {
     let internalStructName: SwiftIdentifier = "_R"
 
     let collectedResult = subgenerators
-      .map { $0.generatedStructs(at: externalAccessLevel, prefix: qualifiedName) }
+      .compactMap {
+        let result = $0.generatedStructs(at: externalAccessLevel, prefix: qualifiedName)
+        if result.externalStruct.isEmpty { return nil }
+        if let internalStruct = result.internalStruct, internalStruct.isEmpty { return nil }
+
+        return result
+      }
       .reduce(StructGeneratorResultCollector()) { collector, result in collector.appending(result) }
 
     let externalStruct = Struct(
+      availables: [],
       comments: ["This `\(qualifiedName)` struct is generated and contains references to static resources."],
       accessModifier: externalAccessLevel,
       type: Type(module: .host, name: structName),
@@ -38,6 +45,7 @@ class AggregatedStructGenerator: StructGenerator {
     )
 
     let internalStruct = Struct(
+      availables: [],
       comments: [],
       accessModifier: externalAccessLevel,
       type: Type(module: .host, name: internalStructName),
@@ -70,7 +78,7 @@ private struct StructGeneratorResultCollector {
   func appending(_ result: StructGenerator.Result) -> StructGeneratorResultCollector {
     return StructGeneratorResultCollector(
       externalStructs: externalStructs + [result.externalStruct],
-      internalStructs: internalStructs + [result.internalStruct].flatMap { $0 }
+      internalStructs: internalStructs + [result.internalStruct].compactMap { $0 }
     )
   }
 }

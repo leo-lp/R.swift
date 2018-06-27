@@ -1,3 +1,42 @@
+## 5.0.0.alpha.1
+
+- Removed CLR file support, use color resources instead
+- Easier nib loading with new method
+- Ignore file supports explicit include (by @renrawnalon)
+- Validation for named colors
+- Empty structs are not generated anymore (by @soberman)
+- Compatible with Xcode 10 / Swift 4.2 / iOS 12 SDK, this release is not compatible with older versions use R.swift 4 if you still need that compatibility
+
+## 4.0.0
+
+- Improved Xcodeproj errors
+- New color assets are now supported
+- Better capitalization is now enabled by default
+- Xcode 9/Swift 4/SPM fixes
+- Deprecate clr based color resources
+- Introduce color asset based color resources
+
+## 4.0.0.alpha.4
+
+- Changes for latest Swift 4 betas
+- Improved Xcodeproj errors
+
+## 4.0.0.alpha.3
+
+- New color assets are now supported
+- Better capitalization is now enabled by default
+- Use new XcodeEdit version that warns when your projectfile is corrupt
+- Xcode 9/Swift 4/SPM fixes
+
+## 4.0.0.alpha.2
+
+- Fix incorrectly merged color PR
+
+## 4.0.0.alpha.1
+
+- Deprecate clr based color resources
+- Introduce color asset based color resources
+
 ## 3.3.0
 
 *New features:*

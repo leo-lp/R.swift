@@ -112,7 +112,7 @@ extension FormatSpecifier : Unifiable {
   // Convenience initializer, uses last character of string,
   // ignoring lengt modifiers, e.g. "lld"
   init?(formatString string: String) {
-    guard let last = string.characters.last else {
+    guard let last = string.last else {
       return nil
     }
 
@@ -120,7 +120,7 @@ extension FormatSpecifier : Unifiable {
   }
 
   init?(formatChar char: Swift.Character) {
-    let lcChar = Swift.String(char).lowercased().characters.first!
+    let lcChar = Swift.String(char).lowercased().first!
     switch lcChar {
     case "@":
       self = .object
@@ -187,16 +187,16 @@ private func createFormatParts(_ formatString: String) -> [FormatPart] {
   // Extract the list of chars (conversion specifiers) and their optional positional specifier
   let chars = formatTypesRegEx.matches(in: formatString, options: [], range: range).map { match -> (String, Int?) in
     let range: NSRange
-    if match.rangeAt(3).location != NSNotFound {
+    if match.range(at: 3).location != NSNotFound {
       // [dioux] are in range #3 because in #2 there may be length modifiers (like in "lld")
-      range = match.rangeAt(3)
+      range = match.range(at: 3)
     } else {
       // otherwise, no length modifier, the conversion specifier is in #2
-      range = match.rangeAt(2)
+      range = match.range(at: 2)
     }
     let char = nsString.substring(with: range)
 
-    let posRange = match.rangeAt(1)
+    let posRange = match.range(at: 1)
     if posRange.location == NSNotFound {
       // No positional specifier
       return (char, nil)
@@ -226,7 +226,7 @@ private func createFormatParts(_ formatString: String) -> [FormatPart] {
     if let reference = referenceRegEx.firstSubstring(input: str) {
       param = FormatPart.reference(reference)
     }
-    else if let char = str.characters.first, let fs = FormatSpecifier(formatChar: char)
+    else if let char = str.first, let fs = FormatSpecifier(formatChar: char)
     {
       param = FormatPart.spec(fs)
     }
@@ -261,7 +261,7 @@ extension NSRegularExpression {
       return nil
     }
 
-    let range = match.rangeAt(1)
+    let range = match.range(at: 1)
     return nsInput.substring(with: range)
   }
 }

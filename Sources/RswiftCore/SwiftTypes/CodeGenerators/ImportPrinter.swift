@@ -15,13 +15,15 @@ struct ImportPrinter: SwiftCodeConverible {
 
   init(modules: Set<Module>, extractFrom structs: [Struct?], exclude excludedModules: Set<Module>) {
     let extractedModules = structs
-      .flatMap { $0 }
+      .compactMap { $0 }
       .flatMap(getUsedTypes)
       .map { $0.type.module }
 
-    swiftCode = modules
+    let modulesSet = modules
       .union(extractedModules)
       .subtracting(excludedModules)
+
+    swiftCode = Array(modulesSet)
       .filter { $0.isCustom }
       .sorted { $0.description < $1.description }
       .map { "import \($0)" }

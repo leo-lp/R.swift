@@ -11,26 +11,22 @@ import Foundation
 import XcodeEdit
 
 public struct RswiftCore {
-  static var isEdgeEnabled = false
 
   static public func run(_ callInformation: CallInformation) throws {
-
     do {
-      RswiftCore.isEdgeEnabled = callInformation.edgeEnabled
-
       let xcodeproj = try Xcodeproj(url: callInformation.xcodeprojURL)
       let ignoreFile = (try? IgnoreFile(ignoreFileURL: callInformation.rswiftIgnoreURL)) ?? IgnoreFile()
 
       let resourceURLs = try xcodeproj.resourcePathsForTarget(callInformation.targetName)
         .map { path in path.url(with: callInformation.urlForSourceTreeFolder) }
-        .flatMap { $0 }
+        .compactMap { $0 }
         .filter { !ignoreFile.matches(url: $0) }
 
       let resources = Resources(resourceURLs: resourceURLs, fileManager: FileManager.default)
 
       let generators: [StructGenerator] = [
         ImageStructGenerator(assetFolders: resources.assetFolders, images: resources.images),
-        ColorStructGenerator(colorPalettes: resources.colors),
+        ColorStructGenerator(assetFolders: resources.assetFolders),
         FontStructGenerator(fonts: resources.fonts),
         SegueStructGenerator(storyboards: resources.storyboards),
         StoryboardStructGenerator(storyboards: resources.storyboards),
@@ -60,7 +56,7 @@ public struct RswiftCore {
         ]
 
       let fileContents = codeConvertibles
-        .flatMap { $0?.swiftCode }
+        .compactMap { $0?.swiftCode }
         .joined(separator: "\n\n")
         + "\n" // Newline at end of file
 

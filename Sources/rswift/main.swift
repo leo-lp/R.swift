@@ -40,7 +40,6 @@ extension ProcessInfo {
 // Flags grouped in struct for readability
 struct CommanderFlags {
   static let version = Flag("version", description: "Prints version information about this release.")
-  static let edge = Flag("edge", description: "Enable stable features that will be in the next major release.")
 }
 
 // Default values for non-optional Commander Options
@@ -57,19 +56,19 @@ struct EnvironmentKeys {
 
 // Options grouped in struct for readability
 struct CommanderOptions {
-  static let importModules = Option("import", "", description: "Add extra modules as import in the generated file, comma seperated.")
-  static let accessLevel = Option("accessLevel", AccessLevel.internalLevel, description: "The access level [public|internal] to use for the generated R-file.")
-  static let rswiftIgnore = Option("rswiftignore", ".rswiftignore", description: "Path to pattern file that describes files that should be ignored.")
+  static let importModules = Option("import", default: "", description: "Add extra modules as import in the generated file, comma seperated.")
+  static let accessLevel = Option("accessLevel", default: AccessLevel.internalLevel, description: "The access level [public|internal] to use for the generated R-file.")
+  static let rswiftIgnore = Option("rswiftignore", default: ".rswiftignore", description: "Path to pattern file that describes files that should be ignored.")
 
-  static let xcodeproj = Option("xcodeproj", EnvironmentKeys.xcodeproj, flag: "p", description: "Path to the xcodeproj file.")
-  static let target = Option("target", EnvironmentKeys.target, flag: "t", description: "Target the R-file should be generated for.")
+  static let xcodeproj = Option("xcodeproj", default: EnvironmentKeys.xcodeproj, flag: "p", description: "Path to the xcodeproj file.")
+  static let target = Option("target", default: EnvironmentKeys.target, flag: "t", description: "Target the R-file should be generated for.")
 
-  static let bundleIdentifier = Option("bundleIdentifier", EnvironmentKeys.bundleIdentifier, description: "Bundle identifier the R-file is be generated for.")
-  static let productModuleName = Option("productModuleName", EnvironmentKeys.productModuleName, description: "Product module name the R-file is generated for.")
-  static let buildProductsDir = Option("buildProductsDir", EnvironmentKeys.buildProductsDir, description: "Build products folder that Xcode uses during build.")
-  static let developerDir = Option("developerDir", EnvironmentKeys.developerDir, description: "Developer folder that Xcode uses during build.")
-  static let sourceRoot = Option("sourceRoot", EnvironmentKeys.sourceRoot, description: "Source root folder that Xcode uses during build.")
-  static let sdkRoot = Option("sdkRoot", EnvironmentKeys.sdkRoot, description: "SDK root folder that Xcode uses during build.")
+  static let bundleIdentifier = Option("bundleIdentifier", default: EnvironmentKeys.bundleIdentifier, description: "Bundle identifier the R-file is be generated for.")
+  static let productModuleName = Option("productModuleName", default: EnvironmentKeys.productModuleName, description: "Product module name the R-file is generated for.")
+  static let buildProductsDir = Option("buildProductsDir", default: EnvironmentKeys.buildProductsDir, description: "Build products folder that Xcode uses during build.")
+  static let developerDir = Option("developerDir", default: EnvironmentKeys.developerDir, description: "Developer folder that Xcode uses during build.")
+  static let sourceRoot = Option("sourceRoot", default: EnvironmentKeys.sourceRoot, description: "Source root folder that Xcode uses during build.")
+  static let sdkRoot = Option("sdkRoot", default: EnvironmentKeys.sdkRoot, description: "SDK root folder that Xcode uses during build.")
 }
 
 
@@ -78,9 +77,7 @@ struct CommanderArguments {
   static let outputDir = Argument<String>("outputDir", description: "Output directory for the 'R.generated.swift' file.")
 }
 
-command(
-  CommanderFlags.version,
-  CommanderFlags.edge,
+let generate = command(
 
   CommanderOptions.importModules,
   CommanderOptions.accessLevel,
@@ -97,7 +94,7 @@ command(
   CommanderOptions.sdkRoot,
 
   CommanderArguments.outputDir
-) { version, edgeFlag, importModules, accessLevel, rswiftIgnore, xcodeproj, target, bundle, productModule, buildProductsDir, developerDir, sourceRoot, sdkRoot, outputDir in
+) { importModules, accessLevel, rswiftIgnore, xcodeproj, target, bundle, productModule, buildProductsDir, developerDir, sourceRoot, sdkRoot, outputDir in
 
   let info = ProcessInfo()
 
@@ -125,7 +122,6 @@ command(
     outputURL: outputURL,
     rswiftIgnoreURL: rswiftIgnoreURL,
 
-    edgeEnabled: edgeFlag,
     accessLevel: accessLevel,
     imports: Set(modules),
 
@@ -142,4 +138,29 @@ command(
 
   try RswiftCore.run(callInformation)
 
-}.run(Rswift.version)
+}
+
+// Temporary warning message during migration to R.swift 4
+let parser = ArgumentParser(arguments: CommandLine.arguments)
+_ = parser.shift()
+let exception = parser.hasOption("version") || parser.hasOption("help")
+
+if !exception && parser.shift() != "generate" {
+  var arguments = CommandLine.arguments
+  arguments.insert("generate", at: 1)
+  let command = arguments
+    .map { $0.contains(" ") ? "\"\($0)\"" : $0 }
+    .joined(separator: " ")
+
+  let message = "error: R.swift 4 requires \"generate\" command as first argument to the executable.\n"
+    + "Change your call to something similar to this:\n\n"
+    + "\(command)"
+    + "\n"
+
+  fputs("\(message)\n", stderr)
+  exit(EXIT_FAILURE)
+}
+
+let group = Group()
+group.addCommand("generate", "Generates R.generated.swift file", generate)
+group.run(Rswift.version)
